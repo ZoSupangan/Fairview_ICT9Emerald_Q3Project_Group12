@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lunar Taxi Cycle - Fare Matrix</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      background-image: url("https://giffiles.alphacoders.com/215/215732.gif"); 
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+    main { flex: 1; }
+    .fare-container {
+      background: rgba(70, 70, 70, 0.6);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: auto;
+    }
+    footer {
+      background-color: #212529;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img src="Lunarcycle.png" alt="Lunar Taxi Cycle Logo" style="height:80px; margin-right: 10px;">
+        <span class="fs-5">Lunar Taxi Cycle</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+              data-bs-target="#navbarNav" aria-controls="navbarNav" 
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="fare.html">Fare Matrix</a></li>
+          <li class="nav-item"><a class="nav-link" href="schedule.html">Schedule</a></li>
+          <li class="nav-item"><a class="nav-link" href="help.html">Help</a></li>
+        </ul>
+        <a href="registration.html" class="btn btn-primary">Create Account</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Fare Calculator -->
+  <main>
+    <div class="fare-container shadow">
+      <h2 class="text-center mb-4">Fare Guide Calculator</h2>
+      <p class="text-center">Choose your line, stations, and passenger type to compute fare.</p>
+
+      <form id="fareForm">
+        <!-- Line Selection -->
+        <div class="mb-3">
+          <label class="form-label">Select Line</label>
+          <select class="form-select" id="line" required>
+            <option value="">Choose...</option>
+            <option value="MRT3">MRT Line 3 (North Avenue – Taft Avenue)</option>
+            <option value="LRT2">LRT Line 2 (Santolan – Recto)</option>
+            <option value="LRT1">LRT Line 1 (Roosevelt – Baclaran)</option>
+          </select>
+        </div>
+
+        <!-- Pickup -->
+        <div class="mb-3">
+          <label class="form-label">Pickup Station</label>
+          <select class="form-select" id="pickup" required></select>
+        </div>
+
+        <!-- Destination -->
+        <div class="mb-3">
+          <label class="form-label">Destination Station</label>
+          <select class="form-select" id="destination" required></select>
+        </div>
+
+        <!-- Passenger Type -->
+        <div class="mb-3">
+          <label class="form-label">Passenger Type</label>
+          <select class="form-select" id="passengerType" required>
+            <option value="Regular">Regular</option>
+            <option value="Student">Student</option>
+            <option value="Senior">Senior Citizen</option>
+            <option value="PWD">PWD</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-warning w-100">Calculate Fare</button>
+      </form>
+
+      <div id="result" class="mt-4 text-center fs-4 fw-bold"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p class="mb-1">Created by: [Your Names], Grade & Section</p>
+      <p class="mb-0">Source: 
+        <a href="https://www.metrolinemap.com/metro/manila/" target="_blank" class="text-warning text-decoration-none">
+          Metro Manila Rail Transit Map
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Fare Calculation Script -->
+  <script>
+    const stations = {
+      MRT3: ["North Avenue","Quezon Avenue","Kamuning","Araneta Center-Cubao","Santolan-Annapolis","Ortigas","Shaw Boulevard","Boni","Guadalupe","Buendia","Ayala","Magallanes","Taft Avenue"],
+      LRT2: ["Santolan","Katipunan","Anonas","Araneta Center-Cubao","Betty Go-Belmonte","Gilmore","J. Ruiz","V. Mapa","Pureza","Legarda","Recto"],
+      LRT1: ["Roosevelt","Balintawak","Monumento","5th Avenue","R. Papa","Abad Santos","Blumentritt","Tayuman","Bambang","Doroteo Jose","Carriedo","Central Terminal","United Nations","Pedro Gil","Quirino","Vito Cruz","Gil Puyat","Libertad","EDSA","Baclaran"]
+    };
+
+    document.getElementById("line").addEventListener("change", function() {
+      const line = this.value;
+      const pickupSelect = document.getElementById("pickup");
+      const destinationSelect = document.getElementById("destination");
+
+      pickupSelect.innerHTML = "<option value=''>Choose...</option>";
+      destinationSelect.innerHTML = "<option value=''>Choose...</option>";
+
+      if (line && stations[line]) {
+        stations[line].forEach(station => {
+          pickupSelect.innerHTML += `<option>${station}</option>`;
+          destinationSelect.innerHTML += `<option>${station}</option>`;
+        });
+      }
+    });
+
+    document.getElementById("fareForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const baseFare = 50;
+      const perKMRate = 15;
+      const baseKM = 2;
+
+      const line = document.getElementById("line").value;
+      const pickup = document.getElementById("pickup").value;
+      const destination = document.getElementById("destination").value;
+      const passengerType = document.getElementById("passengerType").value;
+
+      if (!line || !pickup || !destination) {
+        document.getElementById("result").innerHTML = "Please complete all fields.";
+        return;
+      }
+
+      const distance = Math.abs(stations[line].indexOf(pickup) - stations[line].indexOf(destination));
+      if (distance === 0) {
+        document.getElementById("result").innerHTML = "Pickup and destination must be different.";
+        return;
+      }
+
+      let fare = baseFare;
+      if (distance > baseKM) {
+        fare += (distance - baseKM) * perKMRate;
+      }
+
+      if (passengerType !== "Regular") {
+        fare *= 0.8; // 20% discount
+      }
+
+      fare = Math.round(fare);
+
+      document.getElementById("result").innerHTML = 
+        `Line: ${line}<br>Pickup: ${pickup}<br>Destination: ${destination}<br>Estimated Fare: ₱${fare}`;
+    });
+  </script>
+
+</body>
+</html>
